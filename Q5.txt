@@ -1,0 +1,1 @@
+For question 5 I replicated the effect with a spell. I modified the "light spell" as it was a easy spell to cast in game. The spell now instead of creating a light around the player will create multiple magic effects around them. These effects are created at random locations around the player, and will change every time the spell is cast. 
