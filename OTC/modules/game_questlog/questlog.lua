@@ -1,6 +1,15 @@
 questLogButton = nil
 questLineWindow = nil
 
+--local values declared 
+
+local close
+local opened
+
+
+
+
+
 function init()
   g_ui.importStyle('questlogwindow')
   g_ui.importStyle('questlinewindow')
@@ -18,15 +27,18 @@ function terminate()
                        onGameEnd = destroyWindows})
 
   destroyWindows()
+  opened = false
   questLogButton:destroy()
 end
 
 function destroyWindows()
   if questLogWindow then
+    opened = false
     questLogWindow:destroy()
   end
 
   if questLineWindow then
+    opened = false
     questLineWindow:destroy()
   end
 end
@@ -35,25 +47,12 @@ function onGameQuestLog(quests)
   destroyWindows()
 
   questLogWindow = g_ui.createWidget('QuestLogWindow', rootWidget)
-  local questList = questLogWindow:getChildById('questList')
+  close = questLogWindow:getChildById('closeButton')
+  opened = true --to trigger if the window is open or not, this will stop the movement after exiting the widget
+  moveButton() --begin moving button
 
-  for i,questEntry in pairs(quests) do
-    local id, name, completed = unpack(questEntry)
 
-    local questLabel = g_ui.createWidget('QuestLabel', questList)
-    questLabel:setOn(completed)
-    questLabel:setText(name)
-    questLabel.onDoubleClick = function()
-      questLogWindow:hide()
-      g_game.requestQuestLine(id)
-    end
-  end
 
-  questLogWindow.onDestroy = function()
-    questLogWindow = nil
-  end
-
-  questList:focusChild(questList:getFirstChild())
 end
 
 function onGameQuestLine(questId, questMissions)
@@ -86,3 +85,25 @@ function onGameQuestLine(questId, questMissions)
   missionList:focusChild(missionList:getFirstChild())
 end
 
+function Reset()
+  close:setMarginRight(0) --Reset back to starting point
+  close:setMarginBottom(math.random(0,300)) --randomize height
+
+end
+
+
+function moveButton()
+  if (opened)
+  then
+    if(close:getMarginRight() >= 400) --check if box is on edge of window or not
+      then
+          Reset()
+      end    
+      scheduleEvent(function() close:setMarginRight(close:getMarginRight()+5) moveButton() end, 100) --every 1/10th of a second move the button. Calls recurisvely to continue moving. Will stop when window is closed
+  end
+end
+
+function endSelf()
+  opened = false
+  questLogWindow:destroy()
+end 

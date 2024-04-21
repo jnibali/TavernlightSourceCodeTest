@@ -1,0 +1,1 @@
+Question 7 was implemented in the modules of the OTC client. For simplicity I repurposed the quest log widget for this challenge. When opening the quest log, it will have a button moving across the window. If not pressed and the button reaches the end, it will reset at a random height. Clicking on the button also resets it at a different height

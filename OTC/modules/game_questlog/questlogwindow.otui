@@ -22,31 +22,22 @@ QuestLogWindow < MainWindow
   id: questLogWindow
   !text: tr('Quest Log')
   size: 500 400
-  @onEscape: self:destroy()
+  @onEscape: modules.game_questlog.endSelf()
 
   TextList
     id: questList
-    anchors.top: parent.top
-    anchors.bottom: closeButton.top
-    anchors.left: parent.left
-    anchors.right: questListScrollBar.left
-    margin-bottom: 10
-    focusable: false
-    vertical-scrollbar: questListScrollBar
+    View : false
 
   VerticalScrollBar
     id: questListScrollBar
-    anchors.top: parent.top
-    anchors.bottom: closeButton.top
-    anchors.right: parent.right
-    margin-bottom: 10
-    step: 14
-    pixels-scroll: true
+    View : false
 
   Button
     id: closeButton
     anchors.bottom: parent.bottom
     anchors.right: parent.right
-    !text: tr('Close')
+    !text: tr('Jump!')
+    margin-right: 0
+    margin-bottom : 300
     width: 90
-    @onClick: self:getParent():destroy()
+    @onClick: modules.game_questlog.Reset()
