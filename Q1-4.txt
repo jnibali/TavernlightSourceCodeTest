@@ -1,0 +1,132 @@
+Q1:
+	local function releaseStorage(player)
+	player:setStorageValue(1000, -1)
+	end
+
+	function onLogout(player)
+	if player:getStorageValue(1000) == 1 then
+	addEvent(releaseStorage, 1000, player)
+	end
+	return true
+	end
+
+
+Q1 Solution:
+
+	local function releaseStorage(player) --This function appeared fine, no changes needed
+	player:setStorageValue(1000, -1)
+	end
+
+
+	function onLogout(player)
+	releaseStorage(player) --We want all players logging out to have this storage value set to -1. Checking everytime can result in more function calls needed, and it does not hurt to set the value to -1 twice
+	-- "addEvent" was omitted since I see no reason why to attach a timer on releasing player storage
+
+	return true
+	end
+
+
+
+Q2:
+
+	function printSmallGuildNames(memberCount)
+	-- this method is supposed to print names of all guilds that have less than memberCount max members
+	local selectGuildQuery = "SELECT name FROM guilds WHERE max_members < %d;"
+	local resultId = db.storeQuery(string.format(selectGuildQuery, memberCount))
+	local guildName = result.getString("name")
+	print(guildName)
+	end
+
+
+Q2 Solution:
+
+	function printSmallGuildNames(memberCount)
+	-- this method is supposed to print names of all guilds that have less than memberCount max members
+	local selectGuildQuery = "SELECT name FROM guilds WHERE max_members < %d;"
+	local resultId = db.storeQuery(string.format(selectGuildQuery, memberCount))
+	print(result.getString(resultID,"name")) --'guildName' local variable is not needed. 'getString' needs the resultID passed as a parameter as well
+	end
+
+
+Q3:
+
+	function do_sth_with_PlayerParty(playerId, membername)
+	player = Player(playerId)
+	local party = player:getParty()
+
+	for k,v in pairs(party:getMembers()) do
+	if v == Player(membername) then
+	party:removeMember(Player(membername))
+	end
+	end
+	end
+
+
+Q3 Solution:
+
+	function removeMemberFromPlayerParty(playerId, membername) --name to reflect the purpose of the function to remove a member from the player's party
+	player = Player(playerId)  -- I am assuming this is a global variable declared earlier in the module and will leave it as not local to this function
+	local party = player:getParty()
+
+	if(Player(membername):getParty() == party --For loop is not needed, we can check the parts of both players, and remove 'player(Membername)' if they match
+	then
+		party:removeMember(Player(membername))
+	end
+	end
+
+
+Q4: Memory Leak fix
+
+	void Game::addItemToPlayer(const std::string& recipient, uint16_t itemId)
+	{
+	Player* player = g_game.getPlayerByName(recipient);
+	if (!player) {
+	player = new Player(nullptr);
+	if (!IOLoginData::loadPlayerByName(player, recipient)) {
+	return;
+	}
+	}
+
+	Item* item = Item::CreateItem(itemId);
+	if (!item) {
+	return;
+	}
+
+	g_game.internalAddItem(player->getInbox(), item, INDEX_WHEREEVER, FLAG_NOLIMIT);
+
+	if (player->isOffline()) {
+	IOLoginData::savePlayer(player);
+	}
+	}
+
+
+Q4 Solution:
+
+
+	void Game::addItemToPlayer(const std::string& recipient, uint16_t itemId)
+	{
+		Player* player = g_game.getPlayerByName(recipient);
+		Item* item = Item::CreateItem(itemId);
+		if (!player) 
+		{
+			player = new Player(nullptr); --create a new player if needed
+		}
+
+		if (IOLoginData::loadPlayerByName(player, recipient) && item) -- only continue if player and item are valid
+		{
+			g_game.internalAddItem(player->getInbox(), item, INDEX_WHEREEVER, FLAG_NOLIMIT);
+			if (player->isOffline()) 
+			{
+				IOLoginData::savePlayer(player); -- save player if needed
+			}
+		}	
+
+		--free up memory to prevent leak
+		delete (player);
+		delete (item);
+		player = nullptr;
+		item = nullptr;
+			
+	}
+
+For this function I was important that the pointers are always cleared up no matter the result of the function. So instead of having early exits with 'return' it will now instead always continue to the end, but will not perform the add item action if conditions are not met. 
